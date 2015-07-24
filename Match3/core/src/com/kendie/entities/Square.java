@@ -2,8 +2,11 @@ package com.kendie.entities;
 
 public class Square {
 
+	//public enum Type {
+	//	sqEmpty, sqWhite, sqRed, sqPurple, sqOrange, sqGreen, sqYellow, sqBlue
+	//};
 	public enum Type {
-		sqEmpty, sqWhite, sqRed, sqPurple, sqOrange, sqGreen, sqYellow, sqBlue
+		sqEmpty, sqRed, sqPurple, sqGreen, sqYellow, sqBlue
 	};
 
 	public int origY;
@@ -41,6 +44,23 @@ public class Square {
 
 	public static Type numToType(int num) {
 		switch (num) {
+			case 1:
+				return Type.sqRed;
+			case 2:
+				return Type.sqPurple;
+			case 3:
+				return Type.sqGreen;
+			case 4:
+				return Type.sqYellow;
+			case 5:
+				return Type.sqBlue;
+			default:
+				return Type.sqEmpty;
+		}
+	}
+	/*
+	public static Type numToType(int num) {
+		switch (num) {
 		case 1:
 			return Type.sqWhite;
 		case 2:
@@ -59,4 +79,5 @@ public class Square {
 			return Type.sqEmpty;
 		}
 	}
+	*/
 }

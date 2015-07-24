@@ -37,14 +37,11 @@ import com.kendie.handlers.MultipleMatch;
 public class Play extends GameState {
 	private boolean debug = false;
 
-	// draw items on the board
-	private Sprite tweenSprite;
-
 	public enum State {
 		Loading, InitialGems, Wait, SelectedGem, ChangingGems, DisappearingGems, AppearingGems, DisappearingBoard, TimeFinished, ShowingScoreTable
 	};
 
-	private static final Vector2 gemsInitial = new Vector2(0, 0);
+	private static final Vector2 gemsInitial = new Vector2(60, 0);
 
 	private OrthographicCamera b2dCam;
 
@@ -213,10 +210,6 @@ public class Play extends GameState {
 		imgYellow = new TextureRegion(assetManager.get("data/gemyellow.png", Texture.class));
 		imgBlue = new TextureRegion(assetManager.get("data/gemblue.png", Texture.class));
 
-		// test
-		tweenSprite = new Sprite(assetManager.get("data/gemblue.png", Texture.class));
-		tweenSprite.setPosition(10, 500);
-
 		/*
 		 * _imgScoreBackground = new
 		 * TextureRegion(assetManager.get("data/scoreBackground.png",
@@ -300,7 +293,7 @@ public class Play extends GameState {
 						img = new Sprite(getGemsColor(i, j));
 						int index = i * board.getRow() + j;
 						sprites.add(img);
-						sprites.get(index).setPosition(i * blockWidth, j * blockHeight);
+						sprites.get(index).setPosition(gemsInitial.x + i * blockWidth, j * blockHeight);
 						// draw
 						if (sprites.get(index) != null) {
 							Tween.from(sprites.get(index), SpriteAccessor.OPACITY, 0.5f).target(0).start(manager);
@@ -448,19 +441,26 @@ public class Play extends GameState {
 		else if (cState == State.DisappearingGems) {
 			if (animTime == 0) {
 				System.out.println("State.DisappearingGems");
-				// Delete squares that were matched on the board
-				for (int i = 0; i < groupedSquares.size(); ++i) {
-					for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
-						int index1 = (int) groupedSquares.get(i).get(j).x * board.getRow() + (int) groupedSquares.get(i).get(j).y;
-						//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
-						//System.out.println("col is: " + board.getCol() + " index is: " + index1);
-						Timeline.createParallel()
-								.push(Tween.to(sprites.get(index1), SpriteAccessor.OPACITY, 0.3f).target(0))
-										//.push(Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
-								.start(manager);
-						board.del((int) groupedSquares.get(i).get(j).x,
-								(int) groupedSquares.get(i).get(j).y);
+				if (!groupedSquares.isEmpty()) {
+					// Delete squares that were matched on the board
+					for (int i = 0; i < groupedSquares.size(); ++i) {
+						for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
+							int index1 = (int) groupedSquares.get(i).get(j).x * board.getRow() + (int) groupedSquares.get(i).get(j).y;
+							//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
+							//System.out.println("col is: " + board.getCol() + " index is: " + index1);
+							Timeline.createParallel()
+									.push(Tween.to(sprites.get(index1), SpriteAccessor.OPACITY, 0.3f).target(0))
+											//.push(Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
+									.start(manager);
+							board.del((int) groupedSquares.get(i).get(j).x,
+									(int) groupedSquares.get(i).get(j).y);
+						}
 					}
+				}
+				else {
+					cState = State.Wait;
+					animTime = 0;
+					return;
 				}
 			}
 			animTime += dt;
@@ -498,7 +498,7 @@ public class Play extends GameState {
 						board.fillNew((int) groupedSquares.get(i).get(j).x, (int) groupedSquares.get(i).get(j).y); //warning: reversed x/y
 						Sprite img;
 						img = new Sprite(getGemsColor(groupedSquares.get(i).get(j).x, groupedSquares.get(i).get(j).y));
-						img.setPosition(groupedSquares.get(i).get(j).x * blockWidth, groupedSquares.get(i).get(j).y * blockHeight); //todo: set margin
+						img.setPosition(gemsInitial.x + groupedSquares.get(i).get(j).x * blockWidth, groupedSquares.get(i).get(j).y * blockHeight);
 						sprites.get(index1).set(img);
 						Timeline.createParallel()
 								//.push(Tween.set(sprites.get(index1), SpriteAccessor.SCALE_XY).target(0))
@@ -631,8 +631,6 @@ public class Play extends GameState {
 		//blockHeight = imgBoard.getRegionHeight() / board.getRow();
 
 		manager.update(dt);
-		// tween test object
-		tweenSprite.draw(sb);
 
 		// tween the whole board
 		for (int i = 0; i < board.getCol(); i++) {
@@ -689,30 +687,24 @@ public class Play extends GameState {
 		// Check the type of each square and
 		// save the proper image in the img pointer
 		switch (board.getSquare(c, r).getType()) {
-			case sqWhite:
-				localImg = imgWhite;
-				break;
-
+			//case sqWhite:
+			//	localImg = imgWhite;
+			//	break;
 			case sqRed:
 				localImg = imgRed;
 				break;
-
 			case sqPurple:
 				localImg = imgPurple;
 				break;
-
-			case sqOrange:
-				localImg = imgOrange;
-				break;
-
+			//case sqOrange:
+			//	localImg = imgOrange;
+			//	break;
 			case sqGreen:
 				localImg = imgGreen;
 				break;
-
 			case sqYellow:
 				localImg = imgYellow;
 				break;
-
 			case sqBlue:
 				localImg = imgBlue;
 				break;
@@ -756,14 +748,17 @@ public class Play extends GameState {
 					selectedSquareFirst.x = coord.x;
 					selectedSquareFirst.y = coord.y;
 				}
-
+/*
 				else if (cState == State.SelectedGem) {
 					if (!checkClickedSquare((int) mousePos.x, (int) mousePos.y)) {
 						selectedSquareFirst.x = -1;
 						selectedSquareFirst.y = -1;
+						selectedSquareSecond.x = -1;
+						selectedSquareSecond.y = -1;
 						cState = State.Wait;
 					}
 				}
+				*/
 			}
 		}
 		return false;
@@ -781,9 +776,13 @@ public class Play extends GameState {
 			if (cState == State.SelectedGem) {
 
 				Coord res = getCoord((int) mousePos.x, (int) mousePos.y);
-
+				selectedSquareSecond.x = res.x;
+				selectedSquareSecond.y = res.y;
 				if (res != selectedSquareFirst) {
 					checkClickedSquare((int) mousePos.x, (int) mousePos.y);
+				}
+				else {
+					System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
 				}
 			}
 
@@ -796,6 +795,7 @@ public class Play extends GameState {
 		return false;
 	}
 
+	//TODO: adjust this
 	private boolean overGem(int mX, int mY) {
 		return (mX > gemsInitial.x
 				&& mX < gemsInitial.x + imgBoard.getRegionWidth()
@@ -809,67 +809,48 @@ public class Play extends GameState {
 	}
 
 	private boolean checkClickedSquare(int mX, int mY) {
-		selectedSquareSecond = getCoord(mX, mY);
+		//selectedSquareSecond = getCoord(mX, mY);
 
 		// If gem is neighbour
 		//if (Math.abs(selectedSquareFirst.x - selectedSquareSecond.x)
 		//+ Math.abs(selectedSquareFirst.y - selectedSquareSecond.y) == 1) {
-		if ((selectedSquareFirst.y == selectedSquareSecond.y) ||  (selectedSquareFirst.x == selectedSquareSecond.x)) {
-			if (selectedSquareFirst.y == selectedSquareSecond.y) {
-				if (selectedSquareFirst.x < selectedSquareSecond.x) {
-					direction = Board.Direction.RIGHT;
+		if (Math.abs(selectedSquareFirst.x - selectedSquareSecond.x) + Math.abs(selectedSquareFirst.y - selectedSquareSecond.y) != 0) {
+			if (selectedSquareFirst.y == selectedSquareSecond.y || selectedSquareFirst.x == selectedSquareSecond.x) {
+				if (selectedSquareFirst.y == selectedSquareSecond.y) {
+					if (selectedSquareFirst.x < selectedSquareSecond.x) {
+						direction = Board.Direction.RIGHT;
+					}
+					if (selectedSquareFirst.x > selectedSquareSecond.x) {
+						direction = Board.Direction.LEFT;
+					}
 				}
-				if (selectedSquareFirst.x > selectedSquareSecond.x) {
-					direction = Board.Direction.LEFT;
+				if (selectedSquareFirst.x == selectedSquareSecond.x) {
+					if (selectedSquareFirst.y < selectedSquareSecond.y) {
+						direction = Board.Direction.UP;
+					}
+					if (selectedSquareFirst.y > selectedSquareSecond.y) {
+						direction = Board.Direction.DOWN;
+					}
 				}
-			}
-			if (selectedSquareFirst.x == selectedSquareSecond.x) {
-				if (selectedSquareFirst.y < selectedSquareSecond.y) {
-					direction = Board.Direction.UP;
-				}
-				if (selectedSquareFirst.y > selectedSquareSecond.y) {
-					direction = Board.Direction.DOWN;
-				}
-			}
-			System.out.println(selectedSquareFirst.x + " " + selectedSquareFirst.y);
-			System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y);
-			System.out.println(direction);
-			Board tempBoard = new Board(board);
-			tempBoard.shift(selectedSquareFirst.x, selectedSquareFirst.y, direction);
-			/*
-			// ignore the over screen one
-			if (direction == Board.Direction.RIGHT) {
-				tempBoard.setEmpty(0, selectedSquareFirst.y);
-			}
-			if (direction == Board.Direction.LEFT) {
-				tempBoard.setEmpty(board.getCol() - 1, selectedSquareFirst.y);
-			}
-			if (direction == Board.Direction.UP) {
-				tempBoard.setEmpty(selectedSquareFirst.x, 0);
-			}
-			if (direction == Board.Direction.DOWN) {
-				tempBoard.setEmpty(selectedSquareFirst.x, board.getRow() - 1);
-			}
-			*/
-			groupedSquares = tempBoard.check();
+				System.out.println(selectedSquareFirst.x + " " + selectedSquareFirst.y + " color: " + board.getSquare(selectedSquareFirst.x, selectedSquareFirst.y).getType());
+				System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
+				System.out.println(direction);
+				Board tempBoard = new Board(board);
+				tempBoard.shift(selectedSquareFirst.x, selectedSquareFirst.y, direction);
 
-			// test tween
-			if (tweenSprite != null) {
-				System.out.println("tween!");
-				Timeline.createSequence()
-						.push(Tween.to(tweenSprite, SpriteAccessor.CPOS_XY, 1.0f)
-								.targetRelative(blockWidth, 0).ease(Quad.INOUT))
-						.push(Tween.to(tweenSprite, SpriteAccessor.OPACITY, 0.7f).target(0))
-						.push(Tween.to(tweenSprite, SpriteAccessor.OPACITY, 0.7f).target(1))
-						.start(manager);
-			}
-			// If winning movement
-			if (!groupedSquares.isEmpty()) {
+				groupedSquares = tempBoard.check();
+
 				cState = State.ChangingGems;
-				return true;
+				selectedSquareSecond.x = -1;
+				selectedSquareSecond.y = -1;
+				// If winning movement
+				if (!groupedSquares.isEmpty()) {
+					return true;
+				}
 			}
 		}
-
+		selectedSquareSecond.x = -1;
+		selectedSquareSecond.y = -1;
 		return false;
 	}
 

@@ -77,7 +77,7 @@ public class Board {
 		if (direction == Direction.RIGHT) {
 			// shift X to right, keep Y
 			Square temp = squares[getCol() - 1][y1];
-			for (int i = getRow() - 1; i > 0 ; --i) {
+			for (int i = getCol() - 1; i > 0 ; --i) {
 				squares[i][y1] = squares[i - 1][y1];
 			}
 			squares[0][y1] = temp;
@@ -110,14 +110,13 @@ public class Board {
 	public void del(int x, int y) {
 		// if (x >= 0 && x < 8 &&
 		// y >= 0 && y < 8) {
-
 		squares[x][y].setType(Square.Type.sqEmpty);
 		// }
 	}
 
 	public void fillNew(int x, int y) {
 		if (squares[x][y].equals(Square.Type.sqEmpty)) {
-			squares[x][y].setType(Square.numToType(MathUtils.random(1, 7)));
+			squares[x][y].setType(Square.numToType(MathUtils.random(1, 5)));
 		}
 	}
 
@@ -134,7 +133,7 @@ public class Board {
 			for (int i = 0; i < col; ++i) {
 				for (int j = 0; j < row; ++j) {
 					squares[i][j] = new Square(Square.numToType(MathUtils
-							.random(1, 7))); // 8 types of square
+							.random(1, 5))); // 6 types of square
 					squares[i][j].mustFall = true;
 					squares[i][j].origY = (int) MathUtils.random((row -1), (row * 2 - 1));
 					squares[i][j].destY = j + squares[i][j].origY;
@@ -224,8 +223,7 @@ public class Board {
 
 			for (int y = 0; y < row; ++y) {
 				if (squares[x][y].equals(Square.Type.sqEmpty)) {
-					squares[x][y].setType(Square.numToType(MathUtils.random(1,
-							7)));
+					squares[x][y].setType(Square.numToType(MathUtils.random(1, 5)));
 					squares[x][y].mustFall = true;
 					squares[x][y].origY = y + jumps;
 					squares[x][y].destY = jumps;
