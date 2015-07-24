@@ -83,7 +83,7 @@ public class Board {
 			squares[0][y1] = temp;
 		}
 		if (direction == Direction.LEFT) {
-			// shift X to right, keep Y
+			// shift X to left, keep Y
 			Square temp = squares[0][y1];
 			for (int i = 0; i < getCol() - 1 ; ++i) {
 				squares[i][y1] = squares[i + 1][y1];
@@ -91,7 +91,7 @@ public class Board {
 			squares[getCol() - 1][y1] = temp;
 		}
 		if (direction == Direction.UP) {
-			// shift X to right, keep Y
+			// shift Y to up, keep X
 			Square temp = squares[x1][getRow() - 1];
 			for (int j = getRow() - 1; j > 0 ; --j) {
 				squares[x1][j] = squares[x1][j - 1];
@@ -99,7 +99,7 @@ public class Board {
 			squares[x1][0] = temp;
 		}
 		if (direction == Direction.DOWN) {
-			// shift X to right, keep Y
+			// shift Y to down, keep X
 			Square temp = squares[x1][0];
 			for (int j = 0; j < getRow() - 1 ; ++j) {
 				squares[x1][j] = squares[x1][j + 1];

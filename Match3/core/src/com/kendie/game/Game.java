@@ -51,7 +51,7 @@ public class Game extends ApplicationAdapter {
 	@Override
 	public void create() {
 
-		lang = LanguagesManager.getInstance();
+		//lang = LanguagesManager.getInstance();
 		// Mouse pos
 		mousePos = new Vector3();
 
@@ -63,14 +63,13 @@ public class Game extends ApplicationAdapter {
 		assetManager.finishLoading();
 
 		// Get assets
-		imgMouse = new TextureRegion(assetManager.get("data/handCursor.png",
-				Texture.class));
+		imgMouse = new TextureRegion(assetManager.get("data/handCursor.png", Texture.class));
 		// imgMouse.flip(false, true);
 
 		// Sprite batch
 		sb = new SpriteBatch();
 
-		// Ortographic camera
+		// Orthographic camera
 		cam = new OrthographicCamera();
 		cam.setToOrtho(false, V_WIDTH, V_HEIGHT);
 
@@ -106,12 +105,6 @@ public class Game extends ApplicationAdapter {
 
 		//MyInput.update();
 
-		// Perform pending memory unloading, safely
-		gsm.performPendingAssetsUnloading();
-
-		// Perform pending state changes, memory safe
-		gsm.performPendingStateChange();
-
 		// draw the custom mouse
 		if (platform != Platform.Android) {
 			mousePos.x = Gdx.input.getX();
@@ -121,6 +114,12 @@ public class Game extends ApplicationAdapter {
 		}
 		// end rendering
 		sb.end();
+
+		// Perform pending memory unloading, safely
+		gsm.performPendingAssetsUnloading();
+
+		// Perform pending state changes, memory safe
+		gsm.performPendingStateChange();
 	}
 
 	public void dispose() {

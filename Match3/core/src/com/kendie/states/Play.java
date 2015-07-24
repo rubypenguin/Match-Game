@@ -160,12 +160,12 @@ public class Play extends GameState {
 		_fontLoading = assetManager.get("data/loadingFont.fnt",
 				BitmapFont.class);
 		// create board
-		blockWidth = 50;
-		blockHeight = 50;
+		blockWidth = 60;
+		blockHeight = 60;
 
 		int tempCol = Game.V_WIDTH / blockWidth;
 		int tempRow = Game.V_WIDTH / blockHeight;
-		board = new Board(8, 8);
+		board = new Board(7, 6);
 
 		selectedSquareFirst = new Coord(-1, -1);
 		selectedSquareSecond = new Coord(-1, -1);
@@ -201,30 +201,20 @@ public class Play extends GameState {
 		// BitmapFont.class);
 
 		// Load textures
-		System.out.println(assetManager.isLoaded("data/board.png"));
-		imgBackground = new TextureRegion(assetManager.get(
-				"data/background.png", Texture.class));
-		imgBoard = new TextureRegion(assetManager.get("data/board.png",
-				Texture.class));
+		//System.out.println(assetManager.isLoaded("data/board.png"));
+		imgBackground = new TextureRegion(assetManager.get("data/background.png", Texture.class));
+		imgBoard = new TextureRegion(assetManager.get("data/board.png",	Texture.class));
 
-		imgWhite = new TextureRegion(assetManager.get("data/gemWhite.png",
-				Texture.class));
-		imgRed = new TextureRegion(assetManager.get("data/gemRed.png",
-				Texture.class));
-		imgPurple = new TextureRegion(assetManager.get("data/gemPurple.png",
-				Texture.class));
-		imgOrange = new TextureRegion(assetManager.get("data/gemOrange.png",
-				Texture.class));
-		imgGreen = new TextureRegion(assetManager.get("data/gemGreen.png",
-				Texture.class));
-		imgYellow = new TextureRegion(assetManager.get("data/gemYellow.png",
-				Texture.class));
-		imgBlue = new TextureRegion(assetManager.get("data/gemBlue.png",
-				Texture.class));
+		imgWhite = new TextureRegion(assetManager.get("data/gemwhite.png", Texture.class));
+		imgRed = new TextureRegion(assetManager.get("data/gemred.png", Texture.class));
+		imgPurple = new TextureRegion(assetManager.get("data/gempurple.png", Texture.class));
+		imgOrange = new TextureRegion(assetManager.get("data/gemorange.png", Texture.class));
+		imgGreen = new TextureRegion(assetManager.get("data/gemgreen.png", Texture.class));
+		imgYellow = new TextureRegion(assetManager.get("data/gemyellow.png", Texture.class));
+		imgBlue = new TextureRegion(assetManager.get("data/gemblue.png", Texture.class));
 
 		// test
-		tweenSprite = new Sprite(assetManager.get("data/gemBlue.png",
-				Texture.class));
+		tweenSprite = new Sprite(assetManager.get("data/gemblue.png", Texture.class));
 		tweenSprite.setPosition(10, 500);
 
 		/*
@@ -276,14 +266,13 @@ public class Play extends GameState {
 		 * assetManager.get("data/select.ogg", Sound.class); _fallSFX =
 		 * assetManager.get("data/fall.ogg", Sound.class);
 		 */
-		_song = assetManager.get("data/music1.ogg", Music.class);
 
-		// Play music if it wasn�t playing
+		//_song = assetManager.get("data/music1.ogg", Music.class);
+		// Play music if it wasn't playing
 		// if (!_song.isPlaying()) {
 		// _song.setLooping(true);
 		// _song.play();
 		// }
-
 		Gdx.input.setInputProcessor(this);
 	}
 
@@ -309,7 +298,7 @@ public class Play extends GameState {
 					for (int j = 0; j < board.getRow(); j++) {
 						Sprite img;
 						img = new Sprite(getGemsColor(i, j));
-						int index = i * board.getCol() + j;
+						int index = i * board.getRow() + j;
 						sprites.add(img);
 						sprites.get(index).setPosition(i * blockWidth, j * blockHeight);
 						// draw
@@ -455,7 +444,6 @@ public class Play extends GameState {
 				animTime = 0;
 			}
 		}
-
 		// DISAPPEARING GEMS STATE
 		else if (cState == State.DisappearingGems) {
 			if (animTime == 0) {
@@ -463,7 +451,7 @@ public class Play extends GameState {
 				// Delete squares that were matched on the board
 				for (int i = 0; i < groupedSquares.size(); ++i) {
 					for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
-						int index1 = (int) groupedSquares.get(i).get(j).x * board.getCol() + (int) groupedSquares.get(i).get(j).y;
+						int index1 = (int) groupedSquares.get(i).get(j).x * board.getRow() + (int) groupedSquares.get(i).get(j).y;
 						//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
 						//System.out.println("col is: " + board.getCol() + " index is: " + index1);
 						Timeline.createParallel()
@@ -504,7 +492,7 @@ public class Play extends GameState {
 				System.out.println("State.AppearingGems");
 				for (int i = 0; i < groupedSquares.size(); ++i) {
 					for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
-						int index1 = (int) groupedSquares.get(i).get(j).x * board.getCol() + (int) groupedSquares.get(i).get(j).y;
+						int index1 = (int) groupedSquares.get(i).get(j).x * board.getRow() + (int) groupedSquares.get(i).get(j).y;
 						//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
 						//System.out.println("col is: " + board.getCol() + " index is: " + index1);
 						board.fillNew((int) groupedSquares.get(i).get(j).x, (int) groupedSquares.get(i).get(j).y); //warning: reversed x/y
@@ -649,7 +637,7 @@ public class Play extends GameState {
 		// tween the whole board
 		for (int i = 0; i < board.getCol(); i++) {
 			for (int j = 0; j < board.getRow(); j++) {
-				int index = i * board.getCol() + j;
+				int index = i * board.getRow() + j;
 				if (sprites.size() > 0) {
 					//System.out.println(sprites.size());
 					sprites.get(index).draw(sb);
@@ -910,13 +898,13 @@ public class Play extends GameState {
 		assetManager.load("data/buttonBackgroundPressed.png", Texture.class);
 		assetManager.load("data/selector.png", Texture.class);
 		assetManager.load("data/timeBackground.png", Texture.class);
-		assetManager.load("data/gemWhite.png", Texture.class);
-		assetManager.load("data/gemRed.png", Texture.class);
-		assetManager.load("data/gemPurple.png", Texture.class);
-		assetManager.load("data/gemOrange.png", Texture.class);
-		assetManager.load("data/gemGreen.png", Texture.class);
-		assetManager.load("data/gemYellow.png", Texture.class);
-		assetManager.load("data/gemBlue.png", Texture.class);
+		assetManager.load("data/gemwhite.png", Texture.class);
+		assetManager.load("data/gemred.png", Texture.class);
+		assetManager.load("data/gempurple.png", Texture.class);
+		assetManager.load("data/gemorange.png", Texture.class);
+		assetManager.load("data/gemgreen.png", Texture.class);
+		assetManager.load("data/gemyellow.png", Texture.class);
+		assetManager.load("data/gemblue.png", Texture.class);
 		assetManager.load("data/iconHint.png", Texture.class);
 		assetManager.load("data/iconRestart.png", Texture.class);
 		assetManager.load("data/iconExit.png", Texture.class);
@@ -980,13 +968,13 @@ public class Play extends GameState {
 		assetManager.unload("data/board.png");
 		assetManager.unload("data/selector.png");
 		assetManager.unload("data/timeBackground.png");
-		assetManager.unload("data/gemWhite.png");
-		assetManager.unload("data/gemRed.png");
-		assetManager.unload("data/gemPurple.png");
-		assetManager.unload("data/gemOrange.png");
-		assetManager.unload("data/gemGreen.png");
-		assetManager.unload("data/gemYellow.png");
-		assetManager.unload("data/gemBlue.png");
+		assetManager.unload("data/gemwhite.png");
+		assetManager.unload("data/gemred.png");
+		assetManager.unload("data/gempurple.png");
+		assetManager.unload("data/gemorange.png");
+		assetManager.unload("data/gemgreen.png");
+		assetManager.unload("data/gemyellow.png");
+		assetManager.unload("data/gemblue.png");
 		assetManager.unload("data/iconHint.png");
 		assetManager.unload("data/iconRestart.png");
 		assetManager.unload("data/iconExit.png");
@@ -1041,7 +1029,7 @@ public class Play extends GameState {
 		animTime = 0;
 
 		// Steps for short animations
-		animTotalTime = 0.5;
+		animTotalTime = 0.4;
 
 		// Steps for long animations
 		animTotalInitTime = 1.0;
