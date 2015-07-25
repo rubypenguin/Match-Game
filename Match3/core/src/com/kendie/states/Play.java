@@ -62,8 +62,10 @@ public class Play extends GameState {
 	private boolean clicking;
 
 	// game board
-	private Board board;
-
+	private Board board1;
+	private Board board2;
+	private int boardCol;
+	private int boardRow;
 	// points and gems matches
 	private MultipleMatch groupedSquares;
 	private int points;
@@ -133,8 +135,8 @@ public class Play extends GameState {
 
 	// Tween stuff
 	private TweenManager manager;
-	private ArrayList<Sprite> sprites;
-
+	private ArrayList<Sprite> sprites1;
+	private ArrayList<Sprite> sprites2;
 	// private Value alpha = new Value();
 
 	public static int level;
@@ -160,9 +162,10 @@ public class Play extends GameState {
 		blockWidth = 60;
 		blockHeight = 60;
 
-		int tempCol = Game.V_WIDTH / blockWidth;
-		int tempRow = Game.V_WIDTH / blockHeight;
-		board = new Board(7, 6);
+		boardCol = 7;//Game.V_WIDTH / blockWidth;
+		boardRow = 6;//Game.V_WIDTH / blockHeight;
+		board1 = new Board(boardCol, boardRow);
+		board2 = new Board(boardCol, boardRow);
 
 		selectedSquareFirst = new Coord(-1, -1);
 		selectedSquareSecond = new Coord(-1, -1);
@@ -172,7 +175,8 @@ public class Play extends GameState {
 
 		// Tween Engine
 		manager = new TweenManager();
-		sprites = new ArrayList<Sprite>();
+		sprites1 = new ArrayList<Sprite>();
+		sprites2 = new ArrayList<Sprite>();
 		Tween.registerAccessor(Sprite.class, new SpriteAccessor());
 		// create background
 		// backgrounds = new Background(imgBackground, cam, 0f);
@@ -200,7 +204,8 @@ public class Play extends GameState {
 		// Load textures
 		//System.out.println(assetManager.isLoaded("data/board.png"));
 		imgBackground = new TextureRegion(assetManager.get("data/background.png", Texture.class));
-		imgBoard = new TextureRegion(assetManager.get("data/board.png",	Texture.class));
+		//imgBoard = new TextureRegion(assetManager.get("data/board.png",	Texture.class));
+		imgBoard = new TextureRegion(assetManager.get("data/boardTemp.png",	Texture.class));
 
 		imgWhite = new TextureRegion(assetManager.get("data/gemwhite.png", Texture.class));
 		imgRed = new TextureRegion(assetManager.get("data/gemred.png", Texture.class));
@@ -287,16 +292,22 @@ public class Play extends GameState {
 			System.out.println("State.InitialGems");
 			if (animTime == 0) {
 				// go through all of the squares
-				for (int i = 0; i < board.getCol(); i++) {
-					for (int j = 0; j < board.getRow(); j++) {
+				for (int i = 0; i < boardCol; i++) {
+					for (int j = 0; j < boardRow; j++) {
+						int index = i * boardRow + j;
 						Sprite img;
-						img = new Sprite(getGemsColor(i, j));
-						int index = i * board.getRow() + j;
-						sprites.add(img);
-						sprites.get(index).setPosition(gemsInitial.x + i * blockWidth, j * blockHeight);
+						img = new Sprite(getGemsColor(i, j, board1));
+						sprites1.add(img);
+						sprites1.get(index).setPosition(gemsInitial.x + i * blockWidth, j * blockHeight);
+						img = new Sprite(getGemsColor(i, j, board2));
+						sprites2.add(img);
+						sprites2.get(index).setPosition(gemsInitial.x + i * blockWidth, Game.V_HEIGHT - (j + 1) * blockHeight);
 						// draw
-						if (sprites.get(index) != null) {
-							Tween.from(sprites.get(index), SpriteAccessor.OPACITY, 0.5f).target(0).start(manager);
+						if (sprites1.get(index) != null) {
+							Tween.from(sprites1.get(index), SpriteAccessor.OPACITY, 0.5f).target(0).start(manager);
+						}
+						if (sprites2.get(index) != null) {
+							Tween.from(sprites2.get(index), SpriteAccessor.OPACITY, 0.5f).target(0).start(manager);
 						}
 					}
 				}
@@ -323,70 +334,67 @@ public class Play extends GameState {
 			int debugIndex;
 			if (animTime == 0) {
 				System.out.println("State.ChangingGems");
-				// init the scale
-				for (int i = 0; i < board.getCol(); ++i) {
-					for (int j = 0; j < board.getRow(); ++j) {
-						sprites.get(i * board.getRow() + j).setScale(1);
-					}
-				}
+
 				if (direction == Board.Direction.RIGHT) {
 					// keep y, right shift x
-					int index1 = (board.getCol() - 1) * board.getRow() + selectedSquareFirst.y; // rightmost X
-					float tempX = sprites.get(0).getX(); // smallest X
+					int index1 = (boardCol - 1) * boardRow + selectedSquareFirst.y; // rightmost X
+					float tempX = sprites1.get(0).getX(); // smallest X
 					//Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, .3f).target(0).ease(Quad.INOUT).start(manager);
-					for (int i = 0; i < board.getCol() - 1 ; ++i) {
-						index1 -= board.getRow();
-						Tween.to(sprites.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(blockWidth, 0).ease(Quad.INOUT).start(manager);
-						Collections.swap(sprites, index1, index1 + board.getRow());
+					for (int i = 0; i < boardCol - 1 ; ++i) {
+						index1 -= boardRow;
+						Tween.to(sprites1.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(blockWidth, 0).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites1, index1, index1 + boardRow);
+						Tween.to(sprites2.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(blockWidth, 0).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites2, index1, index1 + boardRow);
 					}
-					sprites.get(index1).setX(tempX);
-					debugIndex = index1;
-					Tween.from(sprites.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
-					//System.out.println("DebugIndex is: " + debugIndex);
-					//System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
+					sprites1.get(index1).setX(tempX);
+					Tween.from(sprites1.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
+					sprites2.get(index1).setX(tempX);
+					Tween.from(sprites2.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
 				}
 				if (direction == Board.Direction.LEFT) {
 					// keep y, left shift x
 					int index1 = (int) selectedSquareFirst.y; // leftmost X
-					float tempX = sprites.get((board.getCol() - 1) * board.getRow()).getX(); // biggest X
-					for (int i = 0; i < board.getCol() - 1; ++i) {
-						index1 += board.getRow();
-						Tween.to(sprites.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(-blockWidth, 0).ease(Quad.INOUT).start(manager);
-						Collections.swap(sprites, index1, index1 - board.getRow());
+					float tempX = sprites1.get((boardCol - 1) * boardRow).getX(); // biggest X
+					for (int i = 0; i < boardCol - 1; ++i) {
+						index1 += boardRow;
+						Tween.to(sprites1.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(-blockWidth, 0).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites1, index1, index1 - boardRow);
+						Tween.to(sprites2.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(-blockWidth, 0).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites2, index1, index1 - boardRow);
 					}
-					sprites.get(index1).setX(tempX);
-					debugIndex = index1;
-					Tween.from(sprites.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
-					//System.out.println("DebugIndex is: " + debugIndex);
-					//System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
+					sprites1.get(index1).setX(tempX);
+					Tween.from(sprites1.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
+					sprites2.get(index1).setX(tempX);
+					Tween.from(sprites2.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
 				}
 				if (direction == Board.Direction.UP) {
 					// keep x, up shift y
-					int index1 = (int) selectedSquareFirst.x * board.getRow() + board.getRow() - 1; // find the tallest Y
-					float tempY = sprites.get(0).getY(); // smallest Y
-					for (int i = 0; i < board.getRow() - 1; ++i) {
+					int index1 = (int) selectedSquareFirst.x * boardRow + boardRow - 1; // find the tallest Y
+					float tempY = sprites1.get(0).getY(); // smallest Y
+					for (int i = 0; i < boardRow - 1; ++i) {
 						index1--;
-						Tween.to(sprites.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, blockHeight).ease(Quad.INOUT).start(manager);
-						Collections.swap(sprites, index1, index1 + 1);
+						Tween.to(sprites1.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, blockHeight).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites1, index1, index1 + 1);
 					}
-					sprites.get(index1).setY(tempY);
+					sprites1.get(index1).setY(tempY);
 					debugIndex = index1;
-					Tween.from(sprites.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
+					Tween.from(sprites1.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
 					//System.out.println("DebugIndex is: " + debugIndex);
 					//System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
 				}
 				if (direction == Board.Direction.DOWN) {
 					// keep x, down shift y
-					int index1 = (int) selectedSquareFirst.x * board.getRow(); // find the lowest Y
-					float tempY = sprites.get(board.getRow() - 1).getY(); // biggest Y
-					for (int i = 0; i < board.getRow() - 1; ++i) {
+					int index1 = (int) selectedSquareFirst.x * boardRow; // find the lowest Y
+					float tempY = sprites1.get(boardRow - 1).getY(); // biggest Y
+					for (int i = 0; i < boardRow - 1; ++i) {
 						index1++;
-						Tween.to(sprites.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, -blockHeight).ease(Quad.INOUT).start(manager);
-						Collections.swap(sprites, index1, index1 - 1);
+						Tween.to(sprites1.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, -blockHeight).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites1, index1, index1 - 1);
 					}
-					sprites.get(index1).setY(tempY);
+					sprites1.get(index1).setY(tempY);
 					//debugIndex = index1;
-					Tween.from(sprites.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
+					Tween.from(sprites1.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
 					//System.out.println("DebugIndex is: " + debugIndex);
 					//System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
 				}
@@ -397,32 +405,11 @@ public class Play extends GameState {
 			if ((animTime += dt) >= animTotalTime) {
 				// Switch to next state, gems start to disappear
 				cState = State.DisappearingGems;
-/*
-				if (direction == Board.Direction.RIGHT) {
-					debugIndex = selectedSquareFirst.y;
-					System.out.println("DebugIndex is: " + debugIndex);
-					System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
-				}
-				if (direction == Board.Direction.LEFT) {
-					debugIndex = (board.getCol() - 1) * board.getRow() + selectedSquareFirst.y;
-					System.out.println("DebugIndex is: " + debugIndex);
-					System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
-				}
-				if (direction == Board.Direction.UP) {
-					debugIndex = selectedSquareFirst.x * board.getRow();
-					System.out.println("DebugIndex is: " + debugIndex);
-					System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
-				}
-				if (direction == Board.Direction.DOWN) {
-					debugIndex = selectedSquareFirst.x * board.getRow() + board.getRow() - 1;
-					System.out.println("DebugIndex is: " + debugIndex);
-					System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
-				}
-				*/
+
 				// Swap gems in the board
 				//board.swap((int) selectedSquareFirst.x, (int) selectedSquareFirst.y, (int) selectedSquareSecond.x,(int) selectedSquareSecond.y);
 				// Shift gems in the board
-				board.shift((int) selectedSquareFirst.x, (int) selectedSquareFirst.y, direction);
+				board1.shift((int) selectedSquareFirst.x, (int) selectedSquareFirst.y, direction);
 
 				// Increase multiplier
 				++multiplier;
@@ -445,14 +432,14 @@ public class Play extends GameState {
 					// Delete squares that were matched on the board
 					for (int i = 0; i < groupedSquares.size(); ++i) {
 						for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
-							int index1 = (int) groupedSquares.get(i).get(j).x * board.getRow() + (int) groupedSquares.get(i).get(j).y;
+							int index1 = (int) groupedSquares.get(i).get(j).x * boardRow + (int) groupedSquares.get(i).get(j).y;
 							//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
-							//System.out.println("col is: " + board.getCol() + " index is: " + index1);
+							//System.out.println("col is: " + boardCol + " index is: " + index1);
 							Timeline.createParallel()
-									.push(Tween.to(sprites.get(index1), SpriteAccessor.OPACITY, 0.3f).target(0))
+									.push(Tween.to(sprites1.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
 											//.push(Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
 									.start(manager);
-							board.del((int) groupedSquares.get(i).get(j).x,
+							board1.del((int) groupedSquares.get(i).get(j).x,
 									(int) groupedSquares.get(i).get(j).y);
 						}
 					}
@@ -492,18 +479,18 @@ public class Play extends GameState {
 				System.out.println("State.AppearingGems");
 				for (int i = 0; i < groupedSquares.size(); ++i) {
 					for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
-						int index1 = (int) groupedSquares.get(i).get(j).x * board.getRow() + (int) groupedSquares.get(i).get(j).y;
+						int index1 = (int) groupedSquares.get(i).get(j).x * boardRow + (int) groupedSquares.get(i).get(j).y;
 						//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
-						//System.out.println("col is: " + board.getCol() + " index is: " + index1);
-						board.fillNew((int) groupedSquares.get(i).get(j).x, (int) groupedSquares.get(i).get(j).y); //warning: reversed x/y
+						//System.out.println("col is: " + boardCol + " index is: " + index1);
+						board1.fillNew((int) groupedSquares.get(i).get(j).x, (int) groupedSquares.get(i).get(j).y); //warning: reversed x/y
 						Sprite img;
-						img = new Sprite(getGemsColor(groupedSquares.get(i).get(j).x, groupedSquares.get(i).get(j).y));
+						img = new Sprite(getGemsColor(groupedSquares.get(i).get(j).x, groupedSquares.get(i).get(j).y, board1));
 						img.setPosition(gemsInitial.x + groupedSquares.get(i).get(j).x * blockWidth, groupedSquares.get(i).get(j).y * blockHeight);
-						sprites.get(index1).set(img);
+						sprites1.get(index1).set(img);
 						Timeline.createParallel()
 								//.push(Tween.set(sprites.get(index1), SpriteAccessor.SCALE_XY).target(0))
-								.push(Tween.to(sprites.get(index1), SpriteAccessor.OPACITY, 0.3f).target(1))
-								.push(Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(1, 1))
+								.push(Tween.to(sprites1.get(index1), SpriteAccessor.OPACITY, 0.3f).target(1))
+								.push(Tween.to(sprites1.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(1, 1))
 								.start(manager);
 					}
 				}
@@ -524,7 +511,7 @@ public class Play extends GameState {
 				//board.endAnimation();
 
 				// Check if there are matching groups
-				groupedSquares = board.check();
+				groupedSquares = board1.check();
 
 				// If there are further matches
 				if (!groupedSquares.isEmpty()) {
@@ -542,7 +529,7 @@ public class Play extends GameState {
 				}
 
 				// If there are neither current solutions nor possible future solutions
-				else if (board.solutions().isEmpty()) {
+				else if (board1.solutions().isEmpty()) {
 					// Make the board disappear
 					cState = State.DisappearingBoard;
 					// board.gemsOutScreen();
@@ -555,15 +542,15 @@ public class Play extends GameState {
 			if (animTime == 0) {
 				System.out.println("State.DisappearingBoard");
 				// go through all of the squares
-				for (int i = 0; i < board.getCol(); i++) {
-					for (int j = 0; j < board.getRow(); j++) {
-						int index = i * board.getCol() + j;
+				for (int i = 0; i < boardCol; i++) {
+					for (int j = 0; j < boardRow; j++) {
+						int index = i * boardCol + j;
 						// draw
-						if (sprites.get(index) != null) {
+						if (sprites1.get(index) != null) {
 							// Sprite imgSprite = new Sprite(img[i][j]);
 							// imgSprite.draw(sb);
 							//System.out.println("tween, x: " + i + " y: " + j);
-							Tween.to(sprites.get(index), SpriteAccessor.OPACITY, 0.8f).target(0).start(manager);
+							Tween.to(sprites1.get(index), SpriteAccessor.OPACITY, 0.8f).target(0).start(manager);
 						}
 					}
 				}
@@ -575,8 +562,8 @@ public class Play extends GameState {
 				cState = State.InitialGems;
 
 				// Generate a brand new board
-				board.generate();
-				sprites.clear();
+				board1.generate();
+				sprites1.clear();
 				// Reset animation counter
 				animTime = 0;
 			}
@@ -627,18 +614,22 @@ public class Play extends GameState {
 		sb.draw(imgBoard, 0, 0);
 
 		// get the size of each block
-		//blockWidth = imgBoard.getRegionWidth() / board.getCol();
-		//blockHeight = imgBoard.getRegionHeight() / board.getRow();
+		//blockWidth = imgBoard.getRegionWidth() / boardCol;
+		//blockHeight = imgBoard.getRegionHeight() / boardRow;
 
 		manager.update(dt);
 
 		// tween the whole board
-		for (int i = 0; i < board.getCol(); i++) {
-			for (int j = 0; j < board.getRow(); j++) {
-				int index = i * board.getRow() + j;
-				if (sprites.size() > 0) {
+		for (int i = 0; i < boardCol; i++) {
+			for (int j = 0; j < boardRow; j++) {
+				int index = i * boardRow + j;
+				if (sprites1.size() > 0) {
 					//System.out.println(sprites.size());
-					sprites.get(index).draw(sb);
+					sprites1.get(index).draw(sb);
+				}
+				if (sprites2.size() > 0) {
+					//System.out.println(sprites.size());
+					sprites2.get(index).draw(sb);
 				}
 			}
 		}
@@ -682,7 +673,7 @@ public class Play extends GameState {
 		}*/
 	}
 
-	private TextureRegion getGemsColor(int c, int r) {
+	private TextureRegion getGemsColor(int c, int r, Board board) {
 		TextureRegion localImg = null;
 		// Check the type of each square and
 		// save the proper image in the img pointer
@@ -782,7 +773,7 @@ public class Play extends GameState {
 					checkClickedSquare((int) mousePos.x, (int) mousePos.y);
 				}
 				else {
-					System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
+					System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board1.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
 				}
 			}
 
@@ -832,10 +823,10 @@ public class Play extends GameState {
 						direction = Board.Direction.DOWN;
 					}
 				}
-				System.out.println(selectedSquareFirst.x + " " + selectedSquareFirst.y + " color: " + board.getSquare(selectedSquareFirst.x, selectedSquareFirst.y).getType());
-				System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
+				System.out.println(selectedSquareFirst.x + " " + selectedSquareFirst.y + " color: " + board1.getSquare(selectedSquareFirst.x, selectedSquareFirst.y).getType());
+				System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board1.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
 				System.out.println(direction);
-				Board tempBoard = new Board(board);
+				Board tempBoard = new Board(board1);
 				tempBoard.shift(selectedSquareFirst.x, selectedSquareFirst.y, direction);
 
 				groupedSquares = tempBoard.check();
@@ -873,6 +864,7 @@ public class Play extends GameState {
 		// Load textures
 		assetManager.load("data/background.png", Texture.class);
 		assetManager.load("data/board.png", Texture.class);
+		assetManager.load("data/boardTemp.png", Texture.class);
 
 		assetManager.load("data/scoreBackground.png", Texture.class);
 		assetManager.load("data/buttonBackground.png", Texture.class);
@@ -947,6 +939,7 @@ public class Play extends GameState {
 		assetManager.unload("data/buttonBackground.png");
 		assetManager.unload("data/buttonBackgroundPressed.png");
 		assetManager.unload("data/board.png");
+		assetManager.unload("data/boardTemp.png");
 		assetManager.unload("data/selector.png");
 		assetManager.unload("data/timeBackground.png");
 		assetManager.unload("data/gemwhite.png");
@@ -973,7 +966,8 @@ public class Play extends GameState {
 		points = 0;
 
 		// Generate board
-		board.generate();
+		board1.generate();
+		board2.generate();
 
 		// Redraw the scoreboard
 		// redrawScoreBoard();
