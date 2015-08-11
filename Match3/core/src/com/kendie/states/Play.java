@@ -67,7 +67,8 @@ public class Play extends GameState {
 	private int boardCol;
 	private int boardRow;
 	// points and gems matches
-	private MultipleMatch groupedSquares;
+	private MultipleMatch groupedSquares1;
+	private MultipleMatch groupedSquares2;
 	private int points;
 	private int multiplier = 0;
 	private String txtTime;
@@ -371,32 +372,36 @@ public class Play extends GameState {
 				if (direction == Board.Direction.UP) {
 					// keep x, up shift y
 					int index1 = (int) selectedSquareFirst.x * boardRow + boardRow - 1; // find the tallest Y
-					float tempY = sprites1.get(0).getY(); // smallest Y
+					float tempY1 = sprites1.get(0).getY(); // smallest Y
+					float tempY2 = sprites2.get(0).getY();
 					for (int i = 0; i < boardRow - 1; ++i) {
 						index1--;
 						Tween.to(sprites1.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, blockHeight).ease(Quad.INOUT).start(manager);
 						Collections.swap(sprites1, index1, index1 + 1);
+						Tween.to(sprites2.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, -blockHeight).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites2, index1, index1 + 1);
 					}
-					sprites1.get(index1).setY(tempY);
-					debugIndex = index1;
+					sprites1.get(index1).setY(tempY1);
 					Tween.from(sprites1.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
-					//System.out.println("DebugIndex is: " + debugIndex);
-					//System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
+					sprites2.get(index1).setY(tempY2);
+					Tween.from(sprites2.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
 				}
 				if (direction == Board.Direction.DOWN) {
 					// keep x, down shift y
 					int index1 = (int) selectedSquareFirst.x * boardRow; // find the lowest Y
-					float tempY = sprites1.get(boardRow - 1).getY(); // biggest Y
+					float tempY1 = sprites1.get(boardRow - 1).getY(); // biggest Y
+					float tempY2 = sprites2.get(boardRow - 1).getY();
 					for (int i = 0; i < boardRow - 1; ++i) {
 						index1++;
 						Tween.to(sprites1.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, -blockHeight).ease(Quad.INOUT).start(manager);
 						Collections.swap(sprites1, index1, index1 - 1);
+						Tween.to(sprites2.get(index1), SpriteAccessor.CPOS_XY, .3f).targetRelative(0, blockHeight).ease(Quad.INOUT).start(manager);
+						Collections.swap(sprites2, index1, index1 - 1);
 					}
-					sprites1.get(index1).setY(tempY);
-					//debugIndex = index1;
+					sprites1.get(index1).setY(tempY1);
 					Tween.from(sprites1.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
-					//System.out.println("DebugIndex is: " + debugIndex);
-					//System.out.println("ScaleX = " + sprites.get(debugIndex).getScaleX() + " ScaleY = " + sprites.get(debugIndex).getScaleY());
+					sprites2.get(index1).setY(tempY2);
+					Tween.from(sprites2.get(index1), SpriteAccessor.OPACITY, .3f).target(0).ease(Quad.INOUT).start(manager);
 				}
 			}
 			animTime += dt;
@@ -410,7 +415,7 @@ public class Play extends GameState {
 				//board.swap((int) selectedSquareFirst.x, (int) selectedSquareFirst.y, (int) selectedSquareSecond.x,(int) selectedSquareSecond.y);
 				// Shift gems in the board
 				board1.shift((int) selectedSquareFirst.x, (int) selectedSquareFirst.y, direction);
-
+				board2.shift((int) selectedSquareFirst.x, (int) selectedSquareFirst.y, direction);
 				// Increase multiplier
 				++multiplier;
 
@@ -428,19 +433,33 @@ public class Play extends GameState {
 		else if (cState == State.DisappearingGems) {
 			if (animTime == 0) {
 				System.out.println("State.DisappearingGems");
-				if (!groupedSquares.isEmpty()) {
-					// Delete squares that were matched on the board
-					for (int i = 0; i < groupedSquares.size(); ++i) {
-						for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
-							int index1 = (int) groupedSquares.get(i).get(j).x * boardRow + (int) groupedSquares.get(i).get(j).y;
-							//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
-							//System.out.println("col is: " + boardCol + " index is: " + index1);
-							Timeline.createParallel()
-									.push(Tween.to(sprites1.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
-											//.push(Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
-									.start(manager);
-							board1.del((int) groupedSquares.get(i).get(j).x,
-									(int) groupedSquares.get(i).get(j).y);
+				if (!groupedSquares1.isEmpty() || !groupedSquares2.isEmpty()) {
+					if (!groupedSquares1.isEmpty()) {
+						// Delete squares that were matched on the board
+						for (int i = 0; i < groupedSquares1.size(); ++i) {
+							for (int j = 0; j < groupedSquares1.get(i).size(); ++j) {
+								int index1 = (int) groupedSquares1.get(i).get(j).x * boardRow + (int) groupedSquares1.get(i).get(j).y;
+								//System.out.println("x is: " + groupedSquares1.get(i).get(j).x + " y is: " + groupedSquares1.get(i).get(j).y);
+								//System.out.println("col is: " + boardCol + " index is: " + index1);
+								Timeline.createParallel()
+										.push(Tween.to(sprites1.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
+												//.push(Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
+										.start(manager);
+								board1.del((int) groupedSquares1.get(i).get(j).x, (int) groupedSquares1.get(i).get(j).y);
+							}
+						}
+					}
+					if (!groupedSquares2.isEmpty()) {
+						// Delete squares that were matched on the board
+						for (int i = 0; i < groupedSquares2.size(); ++i) {
+							for (int j = 0; j < groupedSquares2.get(i).size(); ++j) {
+								int index1 = (int) groupedSquares2.get(i).get(j).x * boardRow + (int) groupedSquares2.get(i).get(j).y;
+								Timeline.createParallel()
+										.push(Tween.to(sprites2.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
+												//.push(Tween.to(sprites.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(0, 0))
+										.start(manager);
+								board2.del((int) groupedSquares2.get(i).get(j).x, (int) groupedSquares2.get(i).get(j).y);
+							}
 						}
 					}
 				}
@@ -477,21 +496,38 @@ public class Play extends GameState {
 		else if (cState == State.AppearingGems) {
 			if (animTime == 0) {
 				System.out.println("State.AppearingGems");
-				for (int i = 0; i < groupedSquares.size(); ++i) {
-					for (int j = 0; j < groupedSquares.get(i).size(); ++j) {
-						int index1 = (int) groupedSquares.get(i).get(j).x * boardRow + (int) groupedSquares.get(i).get(j).y;
-						//System.out.println("x is: " + groupedSquares.get(i).get(j).x + " y is: " + groupedSquares.get(i).get(j).y);
-						//System.out.println("col is: " + boardCol + " index is: " + index1);
-						board1.fillNew((int) groupedSquares.get(i).get(j).x, (int) groupedSquares.get(i).get(j).y); //warning: reversed x/y
-						Sprite img;
-						img = new Sprite(getGemsColor(groupedSquares.get(i).get(j).x, groupedSquares.get(i).get(j).y, board1));
-						img.setPosition(gemsInitial.x + groupedSquares.get(i).get(j).x * blockWidth, groupedSquares.get(i).get(j).y * blockHeight);
-						sprites1.get(index1).set(img);
-						Timeline.createParallel()
-								//.push(Tween.set(sprites.get(index1), SpriteAccessor.SCALE_XY).target(0))
-								.push(Tween.to(sprites1.get(index1), SpriteAccessor.OPACITY, 0.3f).target(1))
-								.push(Tween.to(sprites1.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(1, 1))
-								.start(manager);
+				if (!groupedSquares1.isEmpty()) {
+					for (int i = 0; i < groupedSquares1.size(); ++i) {
+						for (int j = 0; j < groupedSquares1.get(i).size(); ++j) {
+							int index1 = (int) groupedSquares1.get(i).get(j).x * boardRow + (int) groupedSquares1.get(i).get(j).y;
+							board1.fillNew((int) groupedSquares1.get(i).get(j).x, (int) groupedSquares1.get(i).get(j).y); //warning: reversed x/y
+							Sprite img;
+							img = new Sprite(getGemsColor(groupedSquares1.get(i).get(j).x, groupedSquares1.get(i).get(j).y, board1));
+							img.setPosition(gemsInitial.x + groupedSquares1.get(i).get(j).x * blockWidth, groupedSquares1.get(i).get(j).y * blockHeight);
+							sprites1.get(index1).set(img);
+							Timeline.createParallel()
+									//.push(Tween.set(sprites.get(index1), SpriteAccessor.SCALE_XY).target(0))
+									.push(Tween.to(sprites1.get(index1), SpriteAccessor.OPACITY, 0.3f).target(1))
+									.push(Tween.to(sprites1.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(1, 1))
+									.start(manager);
+						}
+					}
+				}
+				if (!groupedSquares2.isEmpty()) {
+					for (int i = 0; i < groupedSquares2.size(); ++i) {
+						for (int j = 0; j < groupedSquares2.get(i).size(); ++j) {
+							int index1 = (int) groupedSquares2.get(i).get(j).x * boardRow + (int) groupedSquares2.get(i).get(j).y;
+							board2.fillNew((int) groupedSquares2.get(i).get(j).x, (int) groupedSquares2.get(i).get(j).y); //warning: reversed x/y
+							Sprite img;
+							img = new Sprite(getGemsColor(groupedSquares2.get(i).get(j).x, groupedSquares2.get(i).get(j).y, board2));
+							img.setPosition(gemsInitial.x + groupedSquares2.get(i).get(j).x * blockWidth, Game.V_HEIGHT - (groupedSquares2.get(i).get(j).y + 1) * blockHeight);
+							sprites2.get(index1).set(img);
+							Timeline.createParallel()
+									//.push(Tween.set(sprites.get(index1), SpriteAccessor.SCALE_XY).target(0))
+									.push(Tween.to(sprites2.get(index1), SpriteAccessor.OPACITY, 0.3f).target(1))
+									.push(Tween.to(sprites2.get(index1), SpriteAccessor.SCALE_XY, 0.3f).target(1, 1))
+									.start(manager);
+						}
 					}
 				}
 			}
@@ -511,10 +547,10 @@ public class Play extends GameState {
 				//board.endAnimation();
 
 				// Check if there are matching groups
-				groupedSquares = board1.check();
-
+				groupedSquares1 = board1.check();
+				groupedSquares2 = board2.check();
 				// If there are further matches
-				if (!groupedSquares.isEmpty()) {
+				if (!groupedSquares1.isEmpty() || !groupedSquares2.isEmpty()) {
 					// Increase the score multiplier
 					++multiplier;
 
@@ -527,13 +563,14 @@ public class Play extends GameState {
 					// Go back to the gems-fading state
 					cState = State.DisappearingGems;
 				}
-
+/*
 				// If there are neither current solutions nor possible future solutions
 				else if (board1.solutions().isEmpty()) {
 					// Make the board disappear
 					cState = State.DisappearingBoard;
 					// board.gemsOutScreen();
 				}
+				*/
 			}
 		}
 
@@ -823,19 +860,32 @@ public class Play extends GameState {
 						direction = Board.Direction.DOWN;
 					}
 				}
-				System.out.println(selectedSquareFirst.x + " " + selectedSquareFirst.y + " color: " + board1.getSquare(selectedSquareFirst.x, selectedSquareFirst.y).getType());
-				System.out.println(selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board1.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
+				System.out.println("board1: " + selectedSquareFirst.x + " " + selectedSquareFirst.y + " color: " + board1.getSquare(selectedSquareFirst.x, selectedSquareFirst.y).getType());
+				System.out.println("board1: " + selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board1.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
 				System.out.println(direction);
-				Board tempBoard = new Board(board1);
-				tempBoard.shift(selectedSquareFirst.x, selectedSquareFirst.y, direction);
-
-				groupedSquares = tempBoard.check();
-
+				System.out.println("board2: " + selectedSquareFirst.x + " " + selectedSquareFirst.y + " color: " + board2.getSquare(selectedSquareFirst.x, selectedSquareFirst.y).getType());
+				System.out.println("board2: " + selectedSquareSecond.x + " " + selectedSquareSecond.y + " color: " + board2.getSquare(selectedSquareSecond.x, selectedSquareSecond.y).getType());
+				//check board 1
+				Board tempBoard1 = new Board(board1);
+				tempBoard1.shift(selectedSquareFirst.x, selectedSquareFirst.y, direction);
+				groupedSquares1 = tempBoard1.check();
+				//check board 2
+				Board tempBoard2 = new Board(board2);
+				Board.Direction tempDirection = direction;
+				if (tempDirection == Board.Direction.UP) {
+					tempDirection = Board.Direction.DOWN;
+				}
+				if (tempDirection == Board.Direction.DOWN) {
+					tempDirection = Board.Direction.UP;
+				}
+				tempBoard2.shift(selectedSquareFirst.x, selectedSquareFirst.y, direction);
+				groupedSquares2 = tempBoard2.check();
+				// always goes to changingGems
 				cState = State.ChangingGems;
 				selectedSquareSecond.x = -1;
 				selectedSquareSecond.y = -1;
 				// If winning movement
-				if (!groupedSquares.isEmpty()) {
+				if (!groupedSquares1.isEmpty()) {
 					return true;
 				}
 			}
